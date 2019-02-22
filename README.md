@@ -13,6 +13,7 @@ A command-line tool for taking micro notes.
 
 ### Future Features
 
+- [ ] Coloured terminal output
 - [ ] Linux version
 - [ ] Organise search results according to relevance
 - [ ] Sync notebooks with remote storage
