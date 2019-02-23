@@ -1,4 +1,4 @@
-
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use std::collections::HashMap;
@@ -9,4 +9,6 @@ pub struct Notebook(HashMap<String, Vec<String>>);
 
 pub struct Note {
     id: Uuid,
+    content: String,
+    date: DateTime<Utc>,
 }
