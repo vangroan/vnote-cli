@@ -9,3 +9,4 @@ serde = "1.0"
 serde_yaml = "0.8"
 clap = "2.32"
 uuid = { version = "0.7", features = ["serde", "v4"] }
+chrono = { version = "0.4", features = ["serde"] }
