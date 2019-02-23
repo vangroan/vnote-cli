@@ -7,7 +7,7 @@ A command-line tool for taking micro notes.
 
 ### Minimum Viable Product
 
-- [ ] Command to add a note
+- [x] Command to add a note
 - [ ] Save notes to file in user directory (the default book)
 - [ ] Search notes using regular expressions
 
