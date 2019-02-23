@@ -3,6 +3,12 @@
 
 A command-line tool for taking micro notes.
 
+## Usage
+
+```console
+foo@bar:~$ vnote add csharp "virtual methods result in dynamic dispatch"
+```
+
 ## Todo
 
 ### Minimum Viable Product
