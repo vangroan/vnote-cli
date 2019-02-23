@@ -1,11 +1,14 @@
 extern crate chrono;
 extern crate clap;
+extern crate colored;
 extern crate serde;
 extern crate serde_yaml;
 
 mod book;
 
 use clap::{App, SubCommand, Arg};
+use colored::*;
+use book::{Note};
 
 fn main() {
     let matches = App::new("VNote")
@@ -22,9 +25,14 @@ fn main() {
                 .help("text content of note")))
         .get_matches();
 
-    println!("{:?}", matches);
-
     if let Some(matches) = matches.subcommand_matches("add") {
-        println!("NOTE: {}: {}", matches.value_of("TOPIC").unwrap(), matches.value_of("NOTE").unwrap());
+        let topic = matches.value_of("TOPIC").unwrap();
+        let note = matches.value_of("NOTE").unwrap();
+
+        println!("  {} adding [{}] {}", "#".yellow(), topic, note);
+
+        let note = Note::new(note.to_string());
+
+        println!("  {} added {}", "✓".green(), note.id());
     }
 }
