@@ -44,6 +44,7 @@ pub trait NotebookStore {
     fn add_note(&self, note: Note, book_name: Option<&str>);
 }
 
+#[allow(dead_code)]
 pub struct NotebookFileStorage {
     dir_path: PathBuf,
     /// The path of the default book
@@ -79,7 +80,7 @@ impl NotebookStore for NotebookFileStorage {
 
 impl Default for NotebookFileStorage {
     fn default() -> Self {
-        let mut dir_path = std::env::home_dir().expect("Failed to determine your home directory");
+        let mut dir_path = dirs::home_dir().expect("Failed to determine your home directory");
         dir_path.push(DEFAULT_DIR_NAME);
 
         NotebookFileStorage::new(dir_path.to_str().expect("Failed to create directory path"), DEFAULT_BOOK_NAME)

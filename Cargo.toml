@@ -11,3 +11,4 @@ clap = "2.32"
 uuid = { version = "0.7", features = ["serde", "v4"] }
 chrono = { version = "0.4", features = ["serde"] }
 colored = "1.7"
+dirs = "1.0.4"
