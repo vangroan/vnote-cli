@@ -1,4 +1,5 @@
 use chrono::{DateTime, Local};
+use regex::Regex;
 use serde::{Serialize, Deserialize};
 use serde_yaml;
 use uuid::Uuid;
@@ -47,6 +48,10 @@ impl Note {
     pub fn id(&self) -> Uuid {
         self.id
     }
+
+    pub fn content(&self) -> &str {
+        &self.content
+    }
 }
 
 pub trait NotebookStore {
@@ -56,6 +61,8 @@ pub trait NotebookStore {
     fn add_note(&self, topic: &str, note: Note, book_name: Option<&str>) -> Result<()>;
     fn load_book(&self, book_name: &str) -> Result<Notebook>;
     fn save_book(&self, book_name: &str, book: Notebook) -> Result<()>;
+    // Searches an entire notebook for each note that matches the given pattern
+    fn scan_notes(&self, pattern: &str, book_name: Option<&str>) -> Result<Vec<(String, Note)>>;
 }
 
 #[allow(dead_code)]
@@ -129,6 +136,18 @@ impl NotebookStore for NotebookFileStorage {
         file.write_all(s.as_bytes())?;
 
         Ok(())
+    }
+
+    fn scan_notes(&self, pattern: &str, book_name: Option<&str>) -> Result<Vec<(String, Note)>> {
+        let re = Regex::new(pattern)?;
+        let book = self.load_book(book_name.unwrap_or(DEFAULT_BOOK_NAME))?;
+
+        // consume book, importantly don't save it back
+        // NOTE: Copying strings. investigate more efficient solution
+        Ok(book.0.into_iter()
+            .flat_map(|(topic, notes)| notes.into_iter().map(move |note| (topic.clone(), note)))
+            .filter(|(_topic, note)| re.is_match(&note.content))
+            .collect())
     }
 }
 

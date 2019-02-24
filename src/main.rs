@@ -2,6 +2,7 @@ extern crate chrono;
 extern crate clap;
 extern crate colored;
 extern crate dirs;
+extern crate regex;
 extern crate serde;
 extern crate serde_yaml;
 
@@ -10,6 +11,8 @@ mod book;
 use clap::{App, SubCommand, Arg};
 use colored::*;
 use book::{Note, NotebookFileStorage, NotebookStore};
+
+use std::collections::HashMap;
 
 fn main() {
     let matches = App::new("VNote")
@@ -24,6 +27,11 @@ fn main() {
             .arg(Arg::with_name("NOTE")
                 .required(true)
                 .help("text content of note")))
+        .subcommand(SubCommand::with_name("find")
+            .about("searches for a note using a regular expression")
+            .arg(Arg::with_name("PATTERN")
+                .required(true)
+                .help("regular expression for search")))
         .get_matches();
 
     if let Some(matches) = matches.subcommand_matches("add") {
@@ -40,11 +48,48 @@ fn main() {
         let store = NotebookFileStorage::default();
         
         if let Err(err) = store.setup() {
-            println!(" {} failed to initiate file storage: {:?}", "!".red(), err);
+            eprintln!(" {} failed to initiate file storage: {:?}", "!".red(), err);
         }
 
+        // TODO: get notebook name from command line argument
         store.add_note(topic, note, None).expect(&format!(" {} failed to save notebook", "!".red()));
 
         println!("  {} added {}", "✓".green(), id);
+    }
+
+    if let Some(matches) = matches.subcommand_matches("find") {
+        let pattern = matches.value_of("PATTERN").unwrap();
+
+        println!("  {} searching...", "#".yellow());
+        let store = NotebookFileStorage::default();
+        // TODO: get notebook name from command line argument
+        match store.scan_notes(pattern, None) {
+            Ok(results) => {
+
+                if results.is_empty() {
+                    println!("  {} no results found", "✓".green());
+                } else {
+                    println!("  {} results found", "✓".green());
+
+                    // For display, group according to topics
+                    let mut topic_map : HashMap<String, Vec<Note>> = HashMap::new();
+                    for (topic, note) in results {
+                        topic_map.entry(topic)
+                            .or_insert(vec![])
+                            .push(note);
+                    }
+
+                    // Iterate again to display
+                    for (topic, notes) in topic_map {
+                        println!("  {}", topic.green());
+                        for note in notes {
+                            // TODO: colour matched part of string
+                            println!("   - {}", note.content());
+                        }
+                    }
+                }
+            }
+            Err(err) => eprintln!(" {} failed to search notebook: {:?}", "!".red(), err)
+        }
     }
 }
