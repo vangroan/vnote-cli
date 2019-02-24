@@ -15,11 +15,11 @@ foo@bar:~$ vnote add csharp "virtual methods result in dynamic dispatch"
 
 - [x] Command to add a note
 - [x] Save notes to file in user directory (the default book)
-- [ ] Search notes using regular expressions
-- [ ] Cleanup `dead_code` annotations
+- [x] Search notes using regular expressions
 
 ### Future Features
 
+- [ ] Cleanup `dead_code` annotations
 - [ ] Implement using notebooks other than default `vnote` notebook
 - [ ] Travis build and host releases on Github
 - [ ] Coloured terminal output
