@@ -9,7 +9,7 @@ Adding a note
 
 ```console
 foo@bar:~$ vnote add csharp "virtual methods result in dynamic dispatch"
-  # adding [rust] iterators of iterators can be flattened with `.flat_map()`
+  # adding [csharp] virtual methods result in dynamic dispatch
   ✓ added 70fdcc14-6235-48d2-bc65-c6e98d23e5f5
 ```
 
