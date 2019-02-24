@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use std::collections::HashMap;
 use std::error;
-use std::fs::{self, File, OpenOptions};
+use std::fs::{self, File};
 use std::io::{prelude::*, BufReader};
 use std::path::PathBuf;
 use std::vec::Vec;
