@@ -34,14 +34,17 @@ fn main() {
 
         // First we ensure that we can create a note
         let note = Note::new(note.to_string());
+        let id = note.id().clone();
 
         // Then we save it to disk
         let store = NotebookFileStorage::default();
         
         if let Err(err) = store.setup() {
-            println!("Failed to initiate file storage: {:?}", err);
+            println!(" {} failed to initiate file storage: {:?}", "!".red(), err);
         }
 
-        println!("  {} added {}", "✓".green(), note.id());
+        store.add_note(topic, note, None).expect(&format!(" {} failed to save notebook", "!".red()));
+
+        println!("  {} added {}", "✓".green(), id);
     }
 }

@@ -14,7 +14,7 @@ foo@bar:~$ vnote add csharp "virtual methods result in dynamic dispatch"
 ### Minimum Viable Product
 
 - [x] Command to add a note
-- [ ] Save notes to file in user directory (the default book)
+- [x] Save notes to file in user directory (the default book)
 - [ ] Search notes using regular expressions
 - [ ] Cleanup `dead_code` annotations
 
@@ -26,6 +26,7 @@ foo@bar:~$ vnote add csharp "virtual methods result in dynamic dispatch"
 - [ ] Organise search results according to relevance
 - [ ] Sync notebooks with remote storage
 - [ ] Relate notes to form graph
+- [ ] Investigate lock files (how to implement proper synchronisation for file access)
 
 ### Nice to haves
 
