@@ -20,6 +20,7 @@ foo@bar:~$ vnote add csharp "virtual methods result in dynamic dispatch"
 
 ### Future Features
 
+- [ ] Implement using notebooks other than default `vnote` notebook
 - [ ] Travis build and host releases on Github
 - [ ] Coloured terminal output
 - [ ] Linux version
