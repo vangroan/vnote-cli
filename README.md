@@ -5,8 +5,21 @@ A command-line tool for taking micro notes.
 
 ## Usage
 
+Adding a note
+
 ```console
 foo@bar:~$ vnote add csharp "virtual methods result in dynamic dispatch"
+  # adding [rust] iterators of iterators can be flattened with `.flat_map()`
+  ✓ added 70fdcc14-6235-48d2-bc65-c6e98d23e5f5
+```
+
+Finding a note
+```console
+foo@bar:~$ vnote find "method"
+  # searching...
+  ✓ results found
+  csharp
+   - virtual methods result in dynamic dispatch
 ```
 
 ## Todo
