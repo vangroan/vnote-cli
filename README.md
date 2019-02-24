@@ -32,14 +32,21 @@ foo@bar:~$ vnote find "method"
 
 ### Future Features
 
+- [ ] Add topic argument(s) to `find` command
+- [ ] Allow the `add` command to detect typos (Levenshtein distance?) and warn before creating a junk topic. Example:
+```console
+foo@bar:~$ vnote add jvascript "truthy values can be coerced to boolean with `!!`"
+    ! did you mean to use topic "javascript" or create "jvascript"
+[enter] use "javascript", [c] create "jvascript", [esc] abort:
+```
 - [ ] Cleanup `dead_code` annotations
 - [ ] Implement using notebooks other than default `vnote` notebook
 - [ ] Travis build and host releases on Github
-- [ ] Coloured terminal output
+- [x] Coloured terminal output
 - [ ] Linux version
 - [ ] Organise search results according to relevance
 - [ ] Sync notebooks with remote storage
-- [ ] Relate notes to form graph
+- [ ] Relate notes to form graph (what can we do with this, I wonder?)
 - [ ] Investigate lock files (how to implement proper synchronisation for file access)
 
 ### Nice to haves
