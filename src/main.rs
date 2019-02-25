@@ -1,4 +1,5 @@
 extern crate chrono;
+#[macro_use]
 extern crate clap;
 extern crate colored;
 extern crate dirs;
@@ -16,7 +17,7 @@ use std::collections::HashMap;
 
 fn main() {
     let matches = App::new("VNote")
-        .version("0.1.0")
+        .version(crate_version!())
         .author("Willem Victor <wimpievictor@gmail.com>")
         .about("A command-line tool for taking micro notes")
         .subcommand(SubCommand::with_name("add")
