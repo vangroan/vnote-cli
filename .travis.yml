@@ -1,7 +1,7 @@
 language: rust
 rust:
   - stable
-  - 1.32.0
+  - 1.32.0 # development version
 cache: cargo
 # TODO: Upload to Github Releases
 # see: https://docs.travis-ci.com/user/deployment/releases
