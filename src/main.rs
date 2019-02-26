@@ -16,6 +16,11 @@ use book::{Note, NotebookFileStorage, NotebookStore};
 use std::collections::HashMap;
 
 fn main() {
+    // Older Windows CMD does not support coloured output
+    if cfg!(windows) && !ansi_term::enable_ansi_support().is_ok() {
+        colored::control::set_override(false);
+    }
+
     let matches = App::new("VNote")
         .version(crate_version!())
         .author("Willem Victor <wimpievictor@gmail.com>")
