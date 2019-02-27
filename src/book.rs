@@ -62,7 +62,7 @@ pub trait NotebookStore {
     fn load_book(&self, book_name: &str) -> Result<Notebook>;
     fn save_book(&self, book_name: &str, book: Notebook) -> Result<()>;
     // Searches an entire notebook for each note that matches the given pattern
-    fn scan_notes(&self, pattern: &str, book_name: Option<&str>) -> Result<Vec<(String, Note)>>;
+    fn scan_notes(&self, pattern: &str, book_name: Option<&str>, topic_name: Option<&str>) -> Result<Vec<(String, Note)>>;
 }
 
 #[allow(dead_code)]
@@ -138,13 +138,28 @@ impl NotebookStore for NotebookFileStorage {
         Ok(())
     }
 
-    fn scan_notes(&self, pattern: &str, book_name: Option<&str>) -> Result<Vec<(String, Note)>> {
+    fn scan_notes(&self, pattern: &str, book_name: Option<&str>, topic_name: Option<&str>) -> Result<Vec<(String, Note)>> {
         let re = Regex::new(pattern)?;
         let book = self.load_book(book_name.unwrap_or(DEFAULT_BOOK_NAME))?;
 
+        // Keeping iterator options on stack to avoid Box when upcast to Iterator
+        let mut filter_iter;
+        let mut iter;
+        
         // consume book, importantly don't save it back
+        let iter : &mut Iterator<Item=(String, Vec<Note>)> = match topic_name {
+            Some(t) => {
+                filter_iter = book.0.into_iter().filter(move |(topic, _notes)| t == topic);
+                &mut filter_iter
+            }
+            None => {
+                iter = book.0.into_iter();
+                &mut iter
+            }
+        };
+        
         // NOTE: Copying strings. investigate more efficient solution
-        Ok(book.0.into_iter()
+        Ok(iter
             .flat_map(|(topic, notes)| notes.into_iter().map(move |note| (topic.clone(), note)))
             .filter(|(_topic, note)| re.is_match(&note.content))
             .collect())

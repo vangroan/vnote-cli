@@ -37,7 +37,12 @@ fn main() {
             .about("searches for a note using a regular expression")
             .arg(Arg::with_name("PATTERN")
                 .required(true)
-                .help("regular expression for search")))
+                .help("regular expression for search"))
+            .arg(Arg::with_name("topic")
+                .short("t")
+                .long("topic")
+                .takes_value(true)
+                .help("narrows search to a specific topic")))
         .get_matches();
 
     if let Some(matches) = matches.subcommand_matches("add") {
@@ -65,11 +70,12 @@ fn main() {
 
     if let Some(matches) = matches.subcommand_matches("find") {
         let pattern = matches.value_of("PATTERN").unwrap();
+        let maybe_topic = matches.value_of("topic");
 
         println!("  {} searching...", "#".yellow());
         let store = NotebookFileStorage::default();
         // TODO: get notebook name from command line argument
-        match store.scan_notes(pattern, None) {
+        match store.scan_notes(pattern, None, maybe_topic) {
             Ok(results) => {
 
                 if results.is_empty() {
