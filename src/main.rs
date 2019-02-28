@@ -3,6 +3,7 @@ extern crate chrono;
 extern crate clap;
 extern crate colored;
 extern crate dirs;
+extern crate levenshtein;
 extern crate regex;
 extern crate serde;
 extern crate serde_yaml;

@@ -14,7 +14,25 @@ use std::vec::Vec;
 pub const DEFAULT_DIR_NAME : &str = ".vnote";
 pub const DEFAULT_BOOK_NAME : &str = "vnote";
 
+/// The threshold where the edit distance considers typos.
+/// 
+/// The value is inclusive.
+#[allow(dead_code)]
+pub const TYPO_DISTANCE : f64 = 0.7;
+
 pub type Result<T> = std::result::Result<T, Box<error::Error>>;
+
+/// Calculates how similar two strings are, returning a value
+/// between 0.0 and 1.0.
+/// 
+/// * 0.0 means the two strings are nothing alike
+/// * 0.5 means the two strings are half alike
+/// * 1.0 means the two strings are identical
+#[allow(dead_code)]
+fn edit_distance(a: &str, b: &str) -> f64 {
+    let len = std::cmp::max(a.len(), b.len()) as f64;
+    ((len - levenshtein::levenshtein(a, b) as f64) / len)
+}
 
 /// Represents the contents of a notebook file.
 #[allow(dead_code)]
@@ -172,5 +190,20 @@ impl Default for NotebookFileStorage {
         dir_path.push(DEFAULT_DIR_NAME);
 
         NotebookFileStorage::new(dir_path.to_str().expect("Failed to create directory path"), DEFAULT_BOOK_NAME)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_edit_distance() {
+        assert_eq!(1.0, edit_distance("javascript", "javascript"));
+        assert_eq!(0.5, edit_distance("javascript", "javasxxxxx"));
+        assert_eq!(0.0, edit_distance("javascript", "xxxxxxxxxx"));
+        assert_eq!(0.9, edit_distance("javascript", "javscript"));
+        assert_eq!(0.8, edit_distance("javascript", "javscriptt"));
+        assert_eq!(0.8, edit_distance("javascript", "jaavscript"));
     }
 }
