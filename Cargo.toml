@@ -1,6 +1,6 @@
 [package]
 name = "vnote-cli"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["Willem Victor"]
 edition = "2018"
 
