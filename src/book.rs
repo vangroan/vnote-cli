@@ -1,5 +1,5 @@
 use chrono::{DateTime, Local};
-use regex::Regex;
+use regex::RegexBuilder;
 use serde::{Serialize, Deserialize};
 use serde_yaml;
 use uuid::Uuid;
@@ -157,7 +157,9 @@ impl NotebookStore for NotebookFileStorage {
     }
 
     fn scan_notes(&self, pattern: &str, book_name: Option<&str>, topic_name: Option<&str>) -> Result<Vec<(String, Note)>> {
-        let re = Regex::new(pattern)?;
+        let re = RegexBuilder::new(pattern)
+            .case_insensitive(true)
+            .build()?;
         let book = self.load_book(book_name.unwrap_or(DEFAULT_BOOK_NAME))?;
 
         // Keeping iterator options on stack to avoid Box when upcast to Iterator
