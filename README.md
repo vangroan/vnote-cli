@@ -1,6 +1,8 @@
 
 # VNote
 
+[![Build Status](https://travis-ci.org/vangroan/vnote-cli.png?branch=master)](https://travis-ci.org/vangroan/vnote-cli) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
 A command-line tool for taking micro notes.
 
 ## Usage
