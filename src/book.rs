@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use serde_yaml;
 use uuid::Uuid;
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::error;
 use std::fs::{self, File};
 use std::io::{prelude::*, BufReader};
@@ -20,7 +20,7 @@ pub const DEFAULT_BOOK_NAME : &str = "vnote";
 #[allow(dead_code)]
 pub const TYPO_DISTANCE : f64 = 0.7;
 
-pub type Result<T> = std::result::Result<T, Box<error::Error>>;
+pub type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 /// Calculates how similar two strings are, returning a value
 /// between 0.0 and 1.0.
@@ -195,6 +195,66 @@ impl Default for NotebookFileStorage {
     }
 }
 
+pub struct NotebookSearch;
+
+impl NotebookSearch {
+    pub fn new() -> NotebookSearch {
+        NotebookSearch
+    }
+
+    /// Scans a notebook to find an exact or close match of a topic name
+    pub fn match_topic<'a>(&self, topic: &str, book: &'a Notebook) -> PossibleTopic<'a> {
+        let mut filtered : Vec<(&'a str, f64)> = book.0.iter()
+            .map(|(t, _)| {
+                let distance = edit_distance(topic, t);
+                (t.as_str(), distance)
+            })
+            .filter(|tuple| tuple.1 >= TYPO_DISTANCE)
+            .collect();
+        
+        // Put the closest match first
+        // TODO: instead of sorting, we can just iterate and keep track of the highest distance and index
+        filtered.sort_unstable_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+
+        let top_result = filtered.into_iter().take(1).next();
+
+        match top_result {
+            Some((t, distance)) => if distance == 1.0 {
+                PossibleTopic::Exact
+            } else {
+                PossibleTopic::CloseMatch {
+                    topic: t,
+                    distance
+                }
+            }
+            None => PossibleTopic::Nothing,
+        }
+    }
+
+    pub fn scan_notes(&self, topic: &str, book: &Notebook) -> Result<SearchResults> {
+        unimplemented!()
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub enum PossibleTopic<'a> {
+    /// Topic matches exactly
+    Exact,
+
+    /// Possible match
+    CloseMatch {
+        topic: &'a str,
+        distance: f64,
+    },
+
+    /// No match found
+    Nothing,
+}
+
+pub struct SearchResults {
+    pub notes: BTreeMap<String, Vec<Note>>,
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -207,5 +267,30 @@ mod test {
         assert_eq!(0.9, edit_distance("javascript", "javscript"));
         assert_eq!(0.8, edit_distance("javascript", "javscriptt"));
         assert_eq!(0.8, edit_distance("javascript", "jaavscript"));
+    }
+
+    #[test]
+    fn test_match_topic() {
+        // Assume
+        let mut book = Notebook::default();
+        book.0.entry("csharp".to_string())
+            .or_insert(vec![]);
+        book.0.entry("rust".to_string())
+            .or_insert(vec![]);
+        book.0.entry("javascript".to_string())
+            .or_insert(vec![]);
+        let searcher = NotebookSearch::new();
+
+        // Act
+        let exact = searcher.match_topic("javascript", &book);
+        let close_1 = searcher.match_topic("javscriptt", &book);
+        let close_2 = searcher.match_topic("rust1", &book);
+        let nothing = searcher.match_topic("sharrp", &book);
+
+        // Assert
+        assert_eq!(PossibleTopic::Exact, exact);
+        assert_eq!(PossibleTopic::CloseMatch{ topic: "javascript", distance: 0.8 }, close_1);
+        assert_eq!(PossibleTopic::CloseMatch{ topic: "rust", distance: 0.8 }, close_2);
+        assert_eq!(PossibleTopic::Nothing, nothing);
     }
 }
