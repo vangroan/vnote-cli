@@ -80,6 +80,7 @@ pub trait NotebookStore {
     fn load_book(&self, book_name: &str) -> Result<Notebook>;
     fn save_book(&self, book_name: &str, book: Notebook) -> Result<()>;
     // Searches an entire notebook for each note that matches the given pattern
+    #[deprecated( since = "1.1", note = "searching has moved to NotebookSearch" )]
     fn scan_notes(&self, pattern: &str, book_name: Option<&str>, topic_name: Option<&str>) -> Result<Vec<(String, Note)>>;
 }
 
@@ -231,8 +232,32 @@ impl NotebookSearch {
         }
     }
 
-    pub fn scan_notes(&self, topic: &str, book: &Notebook) -> Result<SearchResults> {
-        unimplemented!()
+    pub fn scan_notes(&self, pattern: &str, topic_name: Option<&str>, book: Notebook) -> Result<SearchResults> {
+        let re = RegexBuilder::new(pattern)
+            .case_insensitive(true)
+            .build()?;
+
+        // Keeping iterator options on stack to avoid Box when upcast to Iterator
+        let mut filter_iter;
+        let mut iter;
+        
+        // consume book, importantly don't save it back
+        let iter : &mut Iterator<Item=(String, Vec<Note>)> = match topic_name {
+            Some(t) => {
+                filter_iter = book.0.into_iter().filter(move |(topic, _notes)| t == topic);
+                &mut filter_iter
+            }
+            None => {
+                iter = book.0.into_iter();
+                &mut iter
+            }
+        };
+        
+        // NOTE: Copying strings. investigate more efficient solution
+        Ok(SearchResults(iter
+            .flat_map(|(topic, notes)| notes.into_iter().map(move |note| (topic.clone(), note)))
+            .filter(|(_topic, note)| re.is_match(&note.content))
+            .collect()))
     }
 }
 
@@ -251,9 +276,8 @@ pub enum PossibleTopic<'a> {
     Nothing,
 }
 
-pub struct SearchResults {
-    pub notes: BTreeMap<String, Vec<Note>>,
-}
+// TODO: Change to BTreeMap
+pub struct SearchResults(Vec<(String, Note)>);
 
 #[cfg(test)]
 mod test {
