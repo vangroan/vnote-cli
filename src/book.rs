@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use serde_yaml;
 use uuid::Uuid;
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::error;
 use std::fs::{self, File};
 use std::io::{prelude::*, BufReader};
@@ -17,7 +17,6 @@ pub const DEFAULT_BOOK_NAME : &str = "vnote";
 /// The threshold where the edit distance considers typos.
 /// 
 /// The value is inclusive.
-#[allow(dead_code)]
 pub const TYPO_DISTANCE : f64 = 0.7;
 
 pub type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
@@ -28,7 +27,6 @@ pub type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 /// * 0.0 means the two strings are nothing alike
 /// * 0.5 means the two strings are half alike
 /// * 1.0 means the two strings are identical
-#[allow(dead_code)]
 fn edit_distance(a: &str, b: &str) -> f64 {
     let len = std::cmp::max(a.len(), b.len()) as f64;
     ((len - levenshtein::levenshtein(a, b) as f64) / len)

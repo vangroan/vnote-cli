@@ -15,8 +15,6 @@ use colored::*;
 use book::{DEFAULT_BOOK_NAME, Note, NotebookFileStorage, NotebookStore, NotebookSearch, PossibleTopic};
 
 use std::collections::HashMap;
-use std::io;
-use std::io::*;
 
 fn main() {
     // Older Windows CMD does not support coloured output
@@ -75,7 +73,7 @@ fn main() {
 
     if let Some(matches) = matches.subcommand_matches("find") {
         let pattern = matches.value_of("PATTERN").unwrap();
-        let mut maybe_topic = matches.value_of("topic");
+        let maybe_topic = matches.value_of("topic");
 
         println!("  {} searching...", "#".yellow());
         let store = NotebookFileStorage::default();
