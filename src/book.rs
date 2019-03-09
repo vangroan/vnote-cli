@@ -232,7 +232,7 @@ impl NotebookSearch {
         }
     }
 
-    pub fn scan_notes(&self, pattern: &str, topic_name: Option<&str>, book: Notebook) -> Result<SearchResults> {
+    pub fn scan_notes<'a>(&self, pattern: &str, topic_name: Option<&str>, book: &'a Notebook) -> Result<SearchResults<'a>> {
         let re = RegexBuilder::new(pattern)
             .case_insensitive(true)
             .build()?;
@@ -242,21 +242,23 @@ impl NotebookSearch {
         let mut iter;
         
         // consume book, importantly don't save it back
-        let iter : &mut Iterator<Item=(String, Vec<Note>)> = match topic_name {
+        let iter : &mut Iterator<Item=(&String, &Vec<Note>)> = match topic_name {
             Some(t) => {
-                filter_iter = book.0.into_iter().filter(move |(topic, _notes)| t == topic);
+                filter_iter = book.0.iter()
+                    .filter(move |(topic, _notes)| t == topic.as_str());
                 &mut filter_iter
             }
             None => {
-                iter = book.0.into_iter();
+                iter = book.0.iter();
                 &mut iter
             }
         };
         
         // NOTE: Copying strings. investigate more efficient solution
         Ok(SearchResults(iter
-            .flat_map(|(topic, notes)| notes.into_iter().map(move |note| (topic.clone(), note)))
+            .flat_map(|(topic, notes)| notes.into_iter().map(move |note| (topic, note)))
             .filter(|(_topic, note)| re.is_match(&note.content))
+            .map(move |(topic, note)| (topic.as_str(), note))
             .collect()))
     }
 }
@@ -277,7 +279,7 @@ pub enum PossibleTopic<'a> {
 }
 
 // TODO: Change to BTreeMap
-pub struct SearchResults(Vec<(String, Note)>);
+pub struct SearchResults<'a>(pub Vec<(&'a str, &'a Note)>);
 
 #[cfg(test)]
 mod test {

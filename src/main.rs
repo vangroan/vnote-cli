@@ -12,9 +12,11 @@ mod book;
 
 use clap::{App, SubCommand, Arg};
 use colored::*;
-use book::{Note, NotebookFileStorage, NotebookStore};
+use book::{DEFAULT_BOOK_NAME, Note, NotebookFileStorage, NotebookStore, NotebookSearch, PossibleTopic};
 
 use std::collections::HashMap;
+use std::io;
+use std::io::*;
 
 fn main() {
     // Older Windows CMD does not support coloured output
@@ -73,22 +75,41 @@ fn main() {
 
     if let Some(matches) = matches.subcommand_matches("find") {
         let pattern = matches.value_of("PATTERN").unwrap();
-        let maybe_topic = matches.value_of("topic");
+        let mut maybe_topic = matches.value_of("topic");
 
         println!("  {} searching...", "#".yellow());
         let store = NotebookFileStorage::default();
+        // let search = NotebookSearch::new();
         // TODO: get notebook name from command line argument
-        match store.scan_notes(pattern, None, maybe_topic) {
+        let book = store.load_book(DEFAULT_BOOK_NAME).expect(&format!(" {} failed to load notebook", "!".red()));
+
+        let matched_topic = {
+            if let Some(topic) = maybe_topic {
+                match NotebookSearch::new().match_topic(topic, &book) {
+                    PossibleTopic::Exact => Some(topic),
+                    PossibleTopic::CloseMatch { topic, .. } => Some(topic),
+                    PossibleTopic::Nothing => {
+                        println!("  {} topic '{}' not found", "!".red(), topic);
+                        return;
+                    }
+                }
+            } else {
+                None
+            }
+        };
+        
+        
+        match NotebookSearch::new().scan_notes(pattern, matched_topic, &book) {
             Ok(results) => {
 
-                if results.is_empty() {
+                if results.0.is_empty() {
                     println!("  {} no results found", "✓".green());
                 } else {
                     println!("  {} results found", "✓".green());
 
                     // For display, group according to topics
-                    let mut topic_map : HashMap<String, Vec<Note>> = HashMap::new();
-                    for (topic, note) in results {
+                    let mut topic_map : HashMap<&str, Vec<&Note>> = HashMap::new();
+                    for (topic, note) in results.0.into_iter() {
                         topic_map.entry(topic)
                             .or_insert(vec![])
                             .push(note);
