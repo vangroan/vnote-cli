@@ -54,3 +54,8 @@ foo@bar:~$ vnote add jvascript "truthy values can be coerced to boolean with `!!
 ### Nice to haves
 
 - [ ] Full text search. Index file, concordance, strip stop words, fuzzy matching
+
+### Further Reading
+
+- [Building an open source personal knowledge base](https://hackernoon.com/building-a-open-source-personal-knowledge-base-45c25f5a4324)
+- [How I Built a Personal Knowledge Base for Myself](https://dnote.io/blog/how-i-built-personal-knowledge-base-for-myself/)
