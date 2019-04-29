@@ -10,12 +10,13 @@ extern crate serde_yaml;
 
 mod book;
 mod config;
+mod defaults;
 
-use book::{
-    Note, NotebookFileStorage, NotebookSearch, NotebookStore, PossibleTopic, DEFAULT_BOOK_NAME,
-};
+use book::{Note, NotebookFileStorage, NotebookSearch, NotebookStore, PossibleTopic};
 use clap::{App, Arg, SubCommand};
 use colored::*;
+use config::{ConfigFileStore, ConfigStore};
+use defaults::{DEFAULT_BOOK_NAME, DEFAULT_CONFIG_NAME};
 use std::collections::HashMap;
 
 fn main() {
@@ -62,6 +63,14 @@ fn main() {
                 ),
         )
         .get_matches();
+
+    // Load config
+    let _config = {
+        // TODO: Perform actual load
+        let store = ConfigFileStore::new(DEFAULT_CONFIG_NAME);
+
+        store.load_config().expect("Failed to load config file");
+    };
 
     if let Some(matches) = matches.subcommand_matches("add") {
         let topic = matches.value_of("TOPIC").unwrap();

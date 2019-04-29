@@ -1,18 +1,15 @@
+use crate::defaults::{DEFAULT_BOOK_NAME, DEFAULT_DIR_NAME};
 use chrono::{DateTime, Local};
 use regex::RegexBuilder;
 use serde::{Deserialize, Serialize};
 use serde_yaml;
-use uuid::Uuid;
-
 use std::collections::HashMap;
 use std::error;
 use std::fs::{self, File};
 use std::io::{prelude::*, BufReader};
 use std::path::PathBuf;
 use std::vec::Vec;
-
-pub const DEFAULT_DIR_NAME: &str = ".vnote";
-pub const DEFAULT_BOOK_NAME: &str = "vnote";
+use uuid::Uuid;
 
 /// The threshold where the edit distance considers typos.
 ///
