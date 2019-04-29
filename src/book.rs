@@ -1,6 +1,6 @@
 use chrono::{DateTime, Local};
 use regex::RegexBuilder;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_yaml;
 use uuid::Uuid;
 
@@ -11,19 +11,19 @@ use std::io::{prelude::*, BufReader};
 use std::path::PathBuf;
 use std::vec::Vec;
 
-pub const DEFAULT_DIR_NAME : &str = ".vnote";
-pub const DEFAULT_BOOK_NAME : &str = "vnote";
+pub const DEFAULT_DIR_NAME: &str = ".vnote";
+pub const DEFAULT_BOOK_NAME: &str = "vnote";
 
 /// The threshold where the edit distance considers typos.
-/// 
+///
 /// The value is inclusive.
-pub const TYPO_DISTANCE : f64 = 0.7;
+pub const TYPO_DISTANCE: f64 = 0.7;
 
 pub type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 /// Calculates how similar two strings are, returning a value
 /// between 0.0 and 1.0.
-/// 
+///
 /// * 0.0 means the two strings are nothing alike
 /// * 0.5 means the two strings are half alike
 /// * 1.0 means the two strings are identical
@@ -78,8 +78,13 @@ pub trait NotebookStore {
     fn load_book(&self, book_name: &str) -> Result<Notebook>;
     fn save_book(&self, book_name: &str, book: Notebook) -> Result<()>;
     // Searches an entire notebook for each note that matches the given pattern
-    #[deprecated( since = "1.1", note = "searching has moved to NotebookSearch" )]
-    fn scan_notes(&self, pattern: &str, book_name: Option<&str>, topic_name: Option<&str>) -> Result<Vec<(String, Note)>>;
+    #[deprecated(since = "1.1", note = "searching has moved to NotebookSearch")]
+    fn scan_notes(
+        &self,
+        pattern: &str,
+        book_name: Option<&str>,
+        topic_name: Option<&str>,
+    ) -> Result<Vec<(String, Note)>>;
 }
 
 #[allow(dead_code)]
@@ -116,10 +121,8 @@ impl NotebookStore for NotebookFileStorage {
 
         let mut book = self.load_book(name)?;
 
-        book.0.entry(topic.to_string())
-            .or_insert(vec![])
-            .push(note);
-        
+        book.0.entry(topic.to_string()).or_insert(vec![]).push(note);
+
         self.save_book(name, book)?;
 
         Ok(())
@@ -135,7 +138,7 @@ impl NotebookStore for NotebookFileStorage {
             let mut contents = String::new();
             buf_reader.read_to_string(&mut contents)?;
 
-            let book : Notebook = serde_yaml::from_str(&contents)?;
+            let book: Notebook = serde_yaml::from_str(&contents)?;
 
             Ok(book)
         } else {
@@ -155,18 +158,21 @@ impl NotebookStore for NotebookFileStorage {
         Ok(())
     }
 
-    fn scan_notes(&self, pattern: &str, book_name: Option<&str>, topic_name: Option<&str>) -> Result<Vec<(String, Note)>> {
-        let re = RegexBuilder::new(pattern)
-            .case_insensitive(true)
-            .build()?;
+    fn scan_notes(
+        &self,
+        pattern: &str,
+        book_name: Option<&str>,
+        topic_name: Option<&str>,
+    ) -> Result<Vec<(String, Note)>> {
+        let re = RegexBuilder::new(pattern).case_insensitive(true).build()?;
         let book = self.load_book(book_name.unwrap_or(DEFAULT_BOOK_NAME))?;
 
         // Keeping iterator options on stack to avoid Box when upcast to Iterator
         let mut filter_iter;
         let mut iter;
-        
+
         // consume book, importantly don't save it back
-        let iter : &mut Iterator<Item=(String, Vec<Note>)> = match topic_name {
+        let iter: &mut Iterator<Item = (String, Vec<Note>)> = match topic_name {
             Some(t) => {
                 filter_iter = book.0.into_iter().filter(move |(topic, _notes)| t == topic);
                 &mut filter_iter
@@ -176,7 +182,7 @@ impl NotebookStore for NotebookFileStorage {
                 &mut iter
             }
         };
-        
+
         // NOTE: Copying strings. investigate more efficient solution
         Ok(iter
             .flat_map(|(topic, notes)| notes.into_iter().map(move |note| (topic.clone(), note)))
@@ -190,7 +196,10 @@ impl Default for NotebookFileStorage {
         let mut dir_path = dirs::home_dir().expect("Failed to determine your home directory");
         dir_path.push(DEFAULT_DIR_NAME);
 
-        NotebookFileStorage::new(dir_path.to_str().expect("Failed to create directory path"), DEFAULT_BOOK_NAME)
+        NotebookFileStorage::new(
+            dir_path.to_str().expect("Failed to create directory path"),
+            DEFAULT_BOOK_NAME,
+        )
     }
 }
 
@@ -203,14 +212,16 @@ impl NotebookSearch {
 
     /// Scans a notebook to find an exact or close match of a topic name
     pub fn match_topic<'a>(&self, topic: &str, book: &'a Notebook) -> PossibleTopic<'a> {
-        let mut filtered : Vec<(&'a str, f64)> = book.0.iter()
+        let mut filtered: Vec<(&'a str, f64)> = book
+            .0
+            .iter()
             .map(|(t, _)| {
                 let distance = edit_distance(topic, t);
                 (t.as_str(), distance)
             })
             .filter(|tuple| tuple.1 >= TYPO_DISTANCE)
             .collect();
-        
+
         // Put the closest match first
         // TODO: instead of sorting, we can just iterate and keep track of the highest distance and index
         filtered.sort_unstable_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
@@ -218,31 +229,35 @@ impl NotebookSearch {
         let top_result = filtered.into_iter().take(1).next();
 
         match top_result {
-            Some((t, distance)) => if distance == 1.0 {
-                PossibleTopic::Exact
-            } else {
-                PossibleTopic::CloseMatch {
-                    topic: t,
-                    distance
+            Some((t, distance)) => {
+                if distance == 1.0 {
+                    PossibleTopic::Exact
+                } else {
+                    PossibleTopic::CloseMatch { topic: t, distance }
                 }
             }
             None => PossibleTopic::Nothing,
         }
     }
 
-    pub fn scan_notes<'a>(&self, pattern: &str, topic_name: Option<&str>, book: &'a Notebook) -> Result<SearchResults<'a>> {
-        let re = RegexBuilder::new(pattern)
-            .case_insensitive(true)
-            .build()?;
+    pub fn scan_notes<'a>(
+        &self,
+        pattern: &str,
+        topic_name: Option<&str>,
+        book: &'a Notebook,
+    ) -> Result<SearchResults<'a>> {
+        let re = RegexBuilder::new(pattern).case_insensitive(true).build()?;
 
         // Keeping iterator options on stack to avoid Box when upcast to Iterator
         let mut filter_iter;
         let mut iter;
-        
+
         // consume book, importantly don't save it back
-        let iter : &mut Iterator<Item=(&String, &Vec<Note>)> = match topic_name {
+        let iter: &mut Iterator<Item = (&String, &Vec<Note>)> = match topic_name {
             Some(t) => {
-                filter_iter = book.0.iter()
+                filter_iter = book
+                    .0
+                    .iter()
                     .filter(move |(topic, _notes)| t == topic.as_str());
                 &mut filter_iter
             }
@@ -251,13 +266,14 @@ impl NotebookSearch {
                 &mut iter
             }
         };
-        
+
         // NOTE: Copying strings. investigate more efficient solution
-        Ok(SearchResults(iter
-            .flat_map(|(topic, notes)| notes.into_iter().map(move |note| (topic, note)))
-            .filter(|(_topic, note)| re.is_match(&note.content))
-            .map(move |(topic, note)| (topic.as_str(), note))
-            .collect()))
+        Ok(SearchResults(
+            iter.flat_map(|(topic, notes)| notes.into_iter().map(move |note| (topic, note)))
+                .filter(|(_topic, note)| re.is_match(&note.content))
+                .map(move |(topic, note)| (topic.as_str(), note))
+                .collect(),
+        ))
     }
 }
 
@@ -267,10 +283,7 @@ pub enum PossibleTopic<'a> {
     Exact,
 
     /// Possible match
-    CloseMatch {
-        topic: &'a str,
-        distance: f64,
-    },
+    CloseMatch { topic: &'a str, distance: f64 },
 
     /// No match found
     Nothing,
@@ -297,12 +310,9 @@ mod test {
     fn test_match_topic() {
         // Assume
         let mut book = Notebook::default();
-        book.0.entry("csharp".to_string())
-            .or_insert(vec![]);
-        book.0.entry("rust".to_string())
-            .or_insert(vec![]);
-        book.0.entry("javascript".to_string())
-            .or_insert(vec![]);
+        book.0.entry("csharp".to_string()).or_insert(vec![]);
+        book.0.entry("rust".to_string()).or_insert(vec![]);
+        book.0.entry("javascript".to_string()).or_insert(vec![]);
         let searcher = NotebookSearch::new();
 
         // Act
@@ -313,8 +323,20 @@ mod test {
 
         // Assert
         assert_eq!(PossibleTopic::Exact, exact);
-        assert_eq!(PossibleTopic::CloseMatch{ topic: "javascript", distance: 0.8 }, close_1);
-        assert_eq!(PossibleTopic::CloseMatch{ topic: "rust", distance: 0.8 }, close_2);
+        assert_eq!(
+            PossibleTopic::CloseMatch {
+                topic: "javascript",
+                distance: 0.8
+            },
+            close_1
+        );
+        assert_eq!(
+            PossibleTopic::CloseMatch {
+                topic: "rust",
+                distance: 0.8
+            },
+            close_2
+        );
         assert_eq!(PossibleTopic::Nothing, nothing);
     }
 }

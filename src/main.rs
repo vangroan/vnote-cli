@@ -9,16 +9,19 @@ extern crate serde;
 extern crate serde_yaml;
 
 mod book;
+mod config;
 
-use clap::{App, SubCommand, Arg};
+use book::{
+    Note, NotebookFileStorage, NotebookSearch, NotebookStore, PossibleTopic, DEFAULT_BOOK_NAME,
+};
+use clap::{App, Arg, SubCommand};
 use colored::*;
-use book::{DEFAULT_BOOK_NAME, Note, NotebookFileStorage, NotebookStore, NotebookSearch, PossibleTopic};
-
 use std::collections::HashMap;
 
 fn main() {
     // Older Windows CMD does not support coloured output
-    #[cfg(windows)] {
+    #[cfg(windows)]
+    {
         if !ansi_term::enable_ansi_support().is_ok() {
             colored::control::set_override(false);
         }
@@ -28,24 +31,36 @@ fn main() {
         .version(crate_version!())
         .author("Willem Victor <wimpievictor@gmail.com>")
         .about("A command-line tool for taking micro notes")
-        .subcommand(SubCommand::with_name("add")
-            .about("adds a note to book")
-            .arg(Arg::with_name("TOPIC")
-                .required(true)
-                .help("name of note topic"))
-            .arg(Arg::with_name("NOTE")
-                .required(true)
-                .help("text content of note")))
-        .subcommand(SubCommand::with_name("find")
-            .about("searches for a note using a regular expression")
-            .arg(Arg::with_name("PATTERN")
-                .required(true)
-                .help("regular expression for search"))
-            .arg(Arg::with_name("topic")
-                .short("t")
-                .long("topic")
-                .takes_value(true)
-                .help("narrows search to a specific topic")))
+        .subcommand(
+            SubCommand::with_name("add")
+                .about("adds a note to book")
+                .arg(
+                    Arg::with_name("TOPIC")
+                        .required(true)
+                        .help("name of note topic"),
+                )
+                .arg(
+                    Arg::with_name("NOTE")
+                        .required(true)
+                        .help("text content of note"),
+                ),
+        )
+        .subcommand(
+            SubCommand::with_name("find")
+                .about("searches for a note using a regular expression")
+                .arg(
+                    Arg::with_name("PATTERN")
+                        .required(true)
+                        .help("regular expression for search"),
+                )
+                .arg(
+                    Arg::with_name("topic")
+                        .short("t")
+                        .long("topic")
+                        .takes_value(true)
+                        .help("narrows search to a specific topic"),
+                ),
+        )
         .get_matches();
 
     if let Some(matches) = matches.subcommand_matches("add") {
@@ -60,13 +75,15 @@ fn main() {
 
         // Then we save it to disk
         let store = NotebookFileStorage::default();
-        
+
         if let Err(err) = store.setup() {
             eprintln!(" {} failed to initiate file storage: {:?}", "!".red(), err);
         }
 
         // TODO: get notebook name from command line argument
-        store.add_note(topic, note, None).expect(&format!(" {} failed to save notebook", "!".red()));
+        store
+            .add_note(topic, note, None)
+            .expect(&format!(" {} failed to save notebook", "!".red()));
 
         println!("  {} added {}", "✓".green(), id);
     }
@@ -79,7 +96,9 @@ fn main() {
         let store = NotebookFileStorage::default();
         // let search = NotebookSearch::new();
         // TODO: get notebook name from command line argument
-        let book = store.load_book(DEFAULT_BOOK_NAME).expect(&format!(" {} failed to load notebook", "!".red()));
+        let book = store
+            .load_book(DEFAULT_BOOK_NAME)
+            .expect(&format!(" {} failed to load notebook", "!".red()));
 
         let matched_topic = {
             if let Some(topic) = maybe_topic {
@@ -95,22 +114,18 @@ fn main() {
                 None
             }
         };
-        
-        
+
         match NotebookSearch::new().scan_notes(pattern, matched_topic, &book) {
             Ok(results) => {
-
                 if results.0.is_empty() {
                     println!("  {} no results found", "✓".green());
                 } else {
                     println!("  {} results found", "✓".green());
 
                     // For display, group according to topics
-                    let mut topic_map : HashMap<&str, Vec<&Note>> = HashMap::new();
+                    let mut topic_map: HashMap<&str, Vec<&Note>> = HashMap::new();
                     for (topic, note) in results.0.into_iter() {
-                        topic_map.entry(topic)
-                            .or_insert(vec![])
-                            .push(note);
+                        topic_map.entry(topic).or_insert(vec![]).push(note);
                     }
 
                     // Iterate again to display
@@ -123,7 +138,7 @@ fn main() {
                     }
                 }
             }
-            Err(err) => eprintln!(" {} failed to search notebook: {:?}", "!".red(), err)
+            Err(err) => eprintln!(" {} failed to search notebook: {:?}", "!".red(), err),
         }
     }
 }
