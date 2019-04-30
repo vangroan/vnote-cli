@@ -16,7 +16,7 @@ use book::{Note, NotebookFileStorage, NotebookSearch, NotebookStore, PossibleTop
 use clap::{App, Arg, SubCommand};
 use colored::*;
 use config::{ConfigFileStore, ConfigStore};
-use defaults::{DEFAULT_BOOK_NAME, DEFAULT_CONFIG_NAME};
+use defaults::DEFAULT_BOOK_NAME;
 use std::collections::HashMap;
 
 fn main() {
@@ -67,9 +67,10 @@ fn main() {
     // Load config
     let _config = {
         // TODO: Perform actual load
-        let store = ConfigFileStore::new(DEFAULT_CONFIG_NAME);
+        let store = ConfigFileStore::default();
+        store.setup().expect("Failed to setup config folder");
 
-        store.load_config().expect("Failed to load config file");
+        store.load_config().expect("Failed to load config file")
     };
 
     if let Some(matches) = matches.subcommand_matches("add") {
