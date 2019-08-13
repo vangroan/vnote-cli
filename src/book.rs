@@ -271,7 +271,7 @@ impl NotebookSearch {
 
         // NOTE: Copying strings. investigate more efficient solution
         Ok(SearchResults(
-            iter.flat_map(|(topic, notes)| notes.into_iter().map(move |note| (topic, note)))
+            iter.flat_map(|(topic, notes)| notes.iter().map(move |note| (topic, note)))
                 .filter(|(_topic, note)| re.is_match(&note.content))
                 .map(move |(topic, note)| (topic.as_str(), note))
                 .collect(),
