@@ -26,7 +26,7 @@ fn main() {
     // Older Windows CMD does not support coloured output
     #[cfg(windows)]
     {
-        if !ansi_term::enable_ansi_support().is_ok() {
+        if ansi_term::enable_ansi_support().is_err() {
             colored::control::set_override(false);
         }
     }
@@ -75,7 +75,7 @@ fn main() {
 
         // First we ensure that we can create a note
         let note = Note::new(note.to_string());
-        let id = note.id().clone();
+        let id = note.id();
 
         // Then we save it to disk
         let store = NotebookFileStorage::default();
@@ -129,7 +129,7 @@ fn main() {
                     // For display, group according to topics
                     let mut topic_map: HashMap<&str, Vec<&Note>> = HashMap::new();
                     for (topic, note) in results.0.into_iter() {
-                        topic_map.entry(topic).or_insert(vec![]).push(note);
+                        topic_map.entry(topic).or_insert_with(|| vec![]).push(note);
                     }
 
                     // Iterate again to display
