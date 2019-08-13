@@ -5,3 +5,8 @@ rust:
 cache: cargo
 # TODO: Upload to Github Releases
 # see: https://docs.travis-ci.com/user/deployment/releases
+before_script:
+  - rustup component add clippy
+script:
+  - cargo clippy --all-targets --all-features -- -D warnings
+  - cargo test
