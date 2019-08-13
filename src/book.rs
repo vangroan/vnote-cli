@@ -1,3 +1,4 @@
+use crate::errors;
 use chrono::{DateTime, Local};
 use regex::RegexBuilder;
 use serde::{Deserialize, Serialize};
@@ -5,7 +6,6 @@ use serde_yaml;
 use uuid::Uuid;
 
 use std::collections::HashMap;
-use std::error;
 use std::fs::{self, File};
 use std::io::{prelude::*, BufReader};
 use std::path::PathBuf;
@@ -18,8 +18,6 @@ pub const DEFAULT_BOOK_NAME: &str = "vnote";
 ///
 /// The value is inclusive.
 pub const TYPO_DISTANCE: f64 = 0.7;
-
-pub type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 /// Calculates how similar two strings are, returning a value
 /// between 0.0 and 1.0.
@@ -72,11 +70,11 @@ impl Note {
 
 pub trait NotebookStore {
     /// Ensures the underlying storage exists and is ready to use
-    fn setup(&self) -> Result<()>;
+    fn setup(&self) -> errors::Result<()>;
     /// Adds a note to a book, and commit it to storage
-    fn add_note(&self, topic: &str, note: Note, book_name: Option<&str>) -> Result<()>;
-    fn load_book(&self, book_name: &str) -> Result<Notebook>;
-    fn save_book(&self, book_name: &str, book: Notebook) -> Result<()>;
+    fn add_note(&self, topic: &str, note: Note, book_name: Option<&str>) -> errors::Result<()>;
+    fn load_book(&self, book_name: &str) -> errors::Result<Notebook>;
+    fn save_book(&self, book_name: &str, book: Notebook) -> errors::Result<()>;
     // Searches an entire notebook for each note that matches the given pattern
     #[deprecated(since = "1.1", note = "searching has moved to NotebookSearch")]
     fn scan_notes(
@@ -84,7 +82,7 @@ pub trait NotebookStore {
         pattern: &str,
         book_name: Option<&str>,
         topic_name: Option<&str>,
-    ) -> Result<Vec<(String, Note)>>;
+    ) -> errors::Result<Vec<(String, Note)>>;
 }
 
 #[allow(dead_code)]
@@ -107,13 +105,13 @@ impl NotebookFileStorage {
 }
 
 impl NotebookStore for NotebookFileStorage {
-    fn setup(&self) -> Result<()> {
+    fn setup(&self) -> errors::Result<()> {
         fs::create_dir_all(&self.dir_path)?;
 
         Ok(())
     }
 
-    fn add_note(&self, topic: &str, note: Note, book_name: Option<&str>) -> Result<()> {
+    fn add_note(&self, topic: &str, note: Note, book_name: Option<&str>) -> errors::Result<()> {
         let name = match book_name {
             Some(s) => s,
             None => &self.book_name,
@@ -128,7 +126,7 @@ impl NotebookStore for NotebookFileStorage {
         Ok(())
     }
 
-    fn load_book(&self, book_name: &str) -> Result<Notebook> {
+    fn load_book(&self, book_name: &str) -> errors::Result<Notebook> {
         let mut path = self.dir_path.clone();
         path.push(book_name);
 
@@ -146,7 +144,7 @@ impl NotebookStore for NotebookFileStorage {
         }
     }
 
-    fn save_book(&self, book_name: &str, book: Notebook) -> Result<()> {
+    fn save_book(&self, book_name: &str, book: Notebook) -> errors::Result<()> {
         let mut path = self.dir_path.clone();
         path.push(book_name);
 
@@ -163,7 +161,7 @@ impl NotebookStore for NotebookFileStorage {
         pattern: &str,
         book_name: Option<&str>,
         topic_name: Option<&str>,
-    ) -> Result<Vec<(String, Note)>> {
+    ) -> errors::Result<Vec<(String, Note)>> {
         let re = RegexBuilder::new(pattern).case_insensitive(true).build()?;
         let book = self.load_book(book_name.unwrap_or(DEFAULT_BOOK_NAME))?;
 
@@ -245,7 +243,7 @@ impl NotebookSearch {
         pattern: &str,
         topic_name: Option<&str>,
         book: &'a Notebook,
-    ) -> Result<SearchResults<'a>> {
+    ) -> errors::Result<SearchResults<'a>> {
         let re = RegexBuilder::new(pattern).case_insensitive(true).build()?;
 
         // Keeping iterator options on stack to avoid Box when upcast to Iterator

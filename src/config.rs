@@ -1,10 +1,11 @@
 //! Management of the user level config
 
-use std::error;
-
-pub type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
+use crate::errors::*;
 
 /// Application config model
+///
+/// TODO: Load config from file
+#[allow(dead_code)]
 pub struct Config {
     /// Notebook to use when no excplicit notebook
     /// is defined in the command-line.

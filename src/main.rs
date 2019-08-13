@@ -7,9 +7,12 @@ extern crate levenshtein;
 extern crate regex;
 extern crate serde;
 extern crate serde_yaml;
+#[macro_use]
+extern crate error_chain;
 
 mod book;
 mod config;
+mod errors;
 
 use book::{
     Note, NotebookFileStorage, NotebookSearch, NotebookStore, PossibleTopic, DEFAULT_BOOK_NAME,
