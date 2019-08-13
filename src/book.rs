@@ -1,4 +1,5 @@
 use crate::errors;
+use crate::inexact_eq;
 use chrono::{DateTime, Local};
 use regex::RegexBuilder;
 use serde::{Deserialize, Serialize};
@@ -231,7 +232,7 @@ impl NotebookSearch {
 
         match top_result {
             Some((t, distance)) => {
-                if distance == 1.0 {
+                if inexact_eq!(distance, 1.0) {
                     PossibleTopic::Exact
                 } else {
                     PossibleTopic::CloseMatch { topic: t, distance }

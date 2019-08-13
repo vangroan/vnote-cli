@@ -13,6 +13,7 @@ extern crate error_chain;
 mod book;
 mod config;
 mod errors;
+mod util;
 
 use book::{
     Note, NotebookFileStorage, NotebookSearch, NotebookStore, PossibleTopic, DEFAULT_BOOK_NAME,
