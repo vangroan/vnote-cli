@@ -86,7 +86,7 @@ fn main() {
         // TODO: get notebook name from command line argument
         store
             .add_note(topic, note, None)
-            .expect(&format!(" {} failed to save notebook", "!".red()));
+            .unwrap_or_else(|err| panic!(" {} failed to save notebook: {}", "!".red(), err));
 
         println!("  {} added {}", "✓".green(), id);
     }
@@ -101,7 +101,7 @@ fn main() {
         // TODO: get notebook name from command line argument
         let book = store
             .load_book(DEFAULT_BOOK_NAME)
-            .expect(&format!(" {} failed to load notebook", "!".red()));
+            .unwrap_or_else(|err| panic!(" {} failed to load notebook: {}", "!".red(), err));
 
         let matched_topic = {
             if let Some(topic) = maybe_topic {

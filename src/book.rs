@@ -119,7 +119,10 @@ impl NotebookStore for NotebookFileStorage {
 
         let mut book = self.load_book(name)?;
 
-        book.0.entry(topic.to_string()).or_insert(vec![]).push(note);
+        book.0
+            .entry(topic.to_string())
+            .or_insert_with(|| vec![])
+            .push(note);
 
         self.save_book(name, book)?;
 
