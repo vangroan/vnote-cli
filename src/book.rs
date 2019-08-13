@@ -174,7 +174,7 @@ impl NotebookStore for NotebookFileStorage {
         let mut iter;
 
         // consume book, importantly don't save it back
-        let iter: &mut Iterator<Item = (String, Vec<Note>)> = match topic_name {
+        let iter: &mut dyn Iterator<Item = (String, Vec<Note>)> = match topic_name {
             Some(t) => {
                 filter_iter = book.0.into_iter().filter(move |(topic, _notes)| t == topic);
                 &mut filter_iter
@@ -255,7 +255,7 @@ impl NotebookSearch {
         let mut iter;
 
         // consume book, importantly don't save it back
-        let iter: &mut Iterator<Item = (&String, &Vec<Note>)> = match topic_name {
+        let iter: &mut dyn Iterator<Item = (&String, &Vec<Note>)> = match topic_name {
             Some(t) => {
                 filter_iter = book
                     .0
