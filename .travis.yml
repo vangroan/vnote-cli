@@ -1,6 +1,7 @@
 language: rust
 rust:
   - stable
+  - 1.32.0 # minimum supported version
   - 1.34.0 # development version
 cache: cargo
 # TODO: Upload to Github Releases
