@@ -76,7 +76,7 @@ pub trait NotebookStore {
     fn load_book(&self, book_name: &str) -> errors::Result<Notebook>;
     fn save_book(&self, book_name: &str, book: Notebook) -> errors::Result<()>;
     // Searches an entire notebook for each note that matches the given pattern
-    #[deprecated(since = "1.1", note = "searching has moved to NotebookSearch")]
+    #[deprecated(since = "1.1.0", note = "searching has moved to NotebookSearch")]
     fn scan_notes(
         &self,
         pattern: &str,
