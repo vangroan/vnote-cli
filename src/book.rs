@@ -300,21 +300,23 @@ mod test {
 
     #[test]
     fn test_edit_distance() {
-        assert_eq!(1.0, edit_distance("javascript", "javascript"));
-        assert_eq!(0.5, edit_distance("javascript", "javasxxxxx"));
-        assert_eq!(0.0, edit_distance("javascript", "xxxxxxxxxx"));
-        assert_eq!(0.9, edit_distance("javascript", "javscript"));
-        assert_eq!(0.8, edit_distance("javascript", "javscriptt"));
-        assert_eq!(0.8, edit_distance("javascript", "jaavscript"));
+        assert!(inexact_eq!(1.0, edit_distance("javascript", "javascript")));
+        assert!(inexact_eq!(0.5, edit_distance("javascript", "javasxxxxx")));
+        assert!(inexact_eq!(0.0, edit_distance("javascript", "xxxxxxxxxx")));
+        assert!(inexact_eq!(0.9, edit_distance("javascript", "javscript")));
+        assert!(inexact_eq!(0.8, edit_distance("javascript", "javscriptt")));
+        assert!(inexact_eq!(0.8, edit_distance("javascript", "jaavscript")));
     }
 
     #[test]
     fn test_match_topic() {
         // Assume
         let mut book = Notebook::default();
-        book.0.entry("csharp".to_string()).or_insert(vec![]);
-        book.0.entry("rust".to_string()).or_insert(vec![]);
-        book.0.entry("javascript".to_string()).or_insert(vec![]);
+        book.0.entry("csharp".to_string()).or_insert_with(|| vec![]);
+        book.0.entry("rust".to_string()).or_insert_with(|| vec![]);
+        book.0
+            .entry("javascript".to_string())
+            .or_insert_with(|| vec![]);
         let searcher = NotebookSearch::new();
 
         // Act
